@@ -2,25 +2,29 @@ name: ib-profiling-env
 
 channels:
   - pytorch
-  - conda-forge
   - nvidia
+  - conda-forge
   - defaults
 
 dependencies:
   - python=3.10
   - numpy<2
   - scipy
-  - pytorch>=2.1
-  - pytorch-cuda=12.1
-  - scikit-learn
   - pandas
-  - datasets
+  - scikit-learn
   - matplotlib
   - jupyter
+  - datasets
+
+  - pytorch=2.1.*
+  - torchvision
+  - pytorch-cuda=12.1
+
   - pip
   - pip:
       - transformers>=4.38
       - accelerate
+      - huggingface_hub
       - sentencepiece
       - nltk
       - tqdm
