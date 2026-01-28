@@ -66,15 +66,21 @@ python projection.py google-bert/bert-base-uncased \
   --populations names.json \
   --examples generated_examples.txt \
   --instructions instructions.json \
-  --instruction_scope all
-```
+  --instruction_scope population_only
 
-```bash
-python projection.py google-bert/bert-base-uncased \
+python projection.py meta-llama/Llama-3.2-1B-Instruct \
+  --populations names.json \
+  --examples generated_examples.txt \
+  --instructions instructions.json \
+  --instruction_scope population_only \
+  --hf_token YOUR_HF_TOKEN
+
+python projection.py google/flan-t5-small \
   --populations names.json \
   --examples generated_examples.txt \
   --instructions instructions.json \
   --instruction_scope population_only
+
 ```bash
 
 Outputs:
@@ -86,15 +92,21 @@ python projection.py google-bert/bert-base-uncased \
   --populations terms.json \
   --examples generated_examples.txt \
   --instructions instructions.json \
-  --instruction_scope all
-```
+  --instruction_scope population_only
 
-```bash
-python projection.py google-bert/bert-base-uncased \
+python projection.py meta-llama/Llama-3.2-1B-Instruct \
+  --populations terms.json \
+  --examples generated_examples.txt \
+  --instructions instructions.json \
+  --instruction_scope population_only \
+  --hf_token YOUR_HF_TOKEN
+
+python projection.py google/flan-t5-small \
   --populations terms.json \
   --examples generated_examples.txt \
   --instructions instructions.json \
   --instruction_scope population_only
+
 ```bash
 
 Notes:

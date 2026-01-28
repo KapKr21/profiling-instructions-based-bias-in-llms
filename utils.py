@@ -1,6 +1,6 @@
 from nltk.corpus import wordnet as wn
 import torch
-from transformers import AutoTokenizer, AutoModel
+from transformers import AutoTokenizer, AutoModel, AutoConfig, T5EncoderModel
 import re
 import numpy as np
 from scipy.stats import ttest_ind
@@ -60,20 +60,28 @@ def get_word_embedding_by_layer(tokenizer, model, context, word, layers):
     
 def load_model_for_embedding_retrieval(embedding_model_name, device, hf_token=None):
 
-    # function to load model in eval mode and to output all hidden states
+    """Load model + tokenizer for embedding retrieval (CPU/GPU).
 
-    tokenizer = AutoTokenizer.from_pretrained(embedding_model_name, use_fast = True, token = hf_token)
-    
-    try:
-        embedding_model = AutoModel.from_pretrained(embedding_model_name, output_hidden_states=True, device_map="auto", token = hf_token)
-    except:
-        # for models where device map has not been implemented (and also not necessary, because these older models are small)
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-        embedding_model = AutoModel.from_pretrained(embedding_model_name, output_hidden_states=True, token = hf_token).to(device)
-    
-    embedding_model.eval();
+    If the model is encoder-decoder (e.g., T5/FLAN-T5), we load the ENCODER-ONLY model
+    (T5EncoderModel) so we can compute token-level contextual embeddings without needing
+    decoder_input_ids.
+    """
+    tokenizer = AutoTokenizer.from_pretrained(embedding_model_name, 
+                                              use_fast=True, 
+                                              token=hf_token)
+    config = AutoConfig.from_pretrained(embedding_model_name, 
+                                        token=hf_token)
 
-    return tokenizer, embedding_model
+    if getattr(config, "model_type", None) == "t5":
+        model = T5EncoderModel.from_pretrained(embedding_model_name, 
+                                               token=hf_token)
+    else:
+        model = AutoModel.from_pretrained(embedding_model_name, 
+                                          token=hf_token)
+
+    model.to(device)
+    model.eval()
+    return tokenizer, model
     
 def get_number_of_hidden_states(tokenizer, model):
     """Return number of hidden states including the embedding layer."""
@@ -235,10 +243,15 @@ def get_stats(values):
     return mean, std
 
 def standardize(values):
+    values = np.array(list(values), dtype=float)
+    mean = np.mean(values)
+    std = np.std(values)
 
-    values = list(values)
-    mean, std = get_stats(values)
-    return (values - mean)/std
+    # Avoid division by zero when all values are identical
+    if std == 0 or np.isnan(std):
+        return np.zeros_like(values)
+
+    return (values - mean) / std
 
 def standardize_new_values(values, mean, std):
 
