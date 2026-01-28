@@ -24,42 +24,12 @@ Environment
 conda env create -f ib-profiling-env.yaml
 conda activate ib-profiling-env
 ```
-Running the analysis for female and male associated names, with stereotype dimensions embedded by generated gender non-specific examples.
-```
-python projection.py google-bert/bert-base-uncased
---populations names.json
---examples generated_examples.txt
-```
-Running the analysis for gendered terms
-```
-python projection.py google-bert/bert-base-uncased 
---populations terms.json 
---examples generated_examples.txt
-```
-Running with access token for gated models on huggingface
-```
-python projection.py meta-llama/Meta-Llama-3-8B
---populations names.json 
---examples generated_examples.txt 
---hf_token {YOUR_TOKEN}
-```
 
 ## iML Extension: Instruction-conditioned profiling
 
 This fork adds persona/instruction conditioning by prepending an instruction prefix to every context fed into the model.
 
-1) Create an instruction file (JSON dict mapping name -> instruction text), e.g. `instructions.json`:
-
-```json
-{
-  "baseline": "",
-  "conservative": "You are conservative",
-  "liberal": "You are liberal",
-  "leftist": "You are leftist"
-}
-```
-
-2) Run the pipeline for all instructions in the file:
+1) Run the pipeline for all instructions in the file:
 
 ```bash
 python projection.py google-bert/bert-base-uncased \
@@ -112,6 +82,40 @@ python projection.py google/flan-t5-small \
 Notes:
 - `--instruction_scope all` recomputes the stereotype space under each instruction (recommended).
 - `--instruction_scope population_only` keeps the stereotype space fixed (baseline) and conditions only the projected populations.
+
+2) Create an instruction file (JSON dict mapping name -> instruction text), e.g. `instructions.json`: for example to add more instructions, for now only 3
+
+```json
+{
+  "baseline": "",
+  "conservative": "You are conservative",
+  "liberal": "You are liberal",
+  "leftist": "You are leftist"
+}
+```
+
+#Baseline commands from the paper 
+
+Running the analysis for female and male associated names, with stereotype dimensions embedded by generated gender non-specific examples.
+
+```
+python projection.py google-bert/bert-base-uncased
+--populations names.json
+--examples generated_examples.txt
+```
+Running the analysis for gendered terms
+```
+python projection.py google-bert/bert-base-uncased 
+--populations terms.json 
+--examples generated_examples.txt
+```
+Running with access token for gated models on huggingface
+```
+python projection.py meta-llama/Meta-Llama-3-8B
+--populations names.json 
+--examples generated_examples.txt 
+--hf_token {YOUR_TOKEN}
+```
 
 ## Resources
 
