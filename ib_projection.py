@@ -33,7 +33,7 @@ parser.add_argument(
     "--populations",
     help="A json file containing a dictionary of population terms of format {population_name: list[str], population_name: list[str]}.",
     type=str,
-    default="population_names.json",
+    default="populations_names.json",
 )
 parser.add_argument(
     "--examples",
@@ -103,9 +103,16 @@ if args.examples != "None":
     max_examples = 5
     context_examples = {}
     with open(args.examples, "r") as f:
-        for entry in f.readlines():
-            entry = js.loads(entry)
-            context_examples[f'{entry["term"]} - {entry["synset"]}'] = entry["examples"][:max_examples]
+        for idx, line in enumerate(f.readlines()):
+            entry = js.loads(line)
+            term = entry["term"]
+
+            if "synset" in entry and entry["synset"]:
+                term_key = f"{term} - {entry['synset']}"
+            else:
+                term_key = f"{term}_{idx}"
+            
+            context_examples[term_key] = entry["examples"][:max_examples]
     no_context = False
 else:
     no_context = True
@@ -140,7 +147,9 @@ def _apply_instruction(context: str,
 def run_for_instruction(instruction_name: str, 
                         instruction_text: str) -> None:
     safe_instruction = "".join([c if c.isalnum() or c in ("-", "_") else "_" for c in instruction_name.strip()])
-    run_name = f"{base_model_name}__{safe_instruction}"
+    pop_name = os.path.splitext(os.path.basename(args.populations))[0]
+
+    run_name = f"{base_model_name}__{safe_instruction}__{pop_name}"
 
     model_output_dir = os.path.join("results", base_model_name)
     os.makedirs(model_output_dir, exist_ok=True)
@@ -343,7 +352,7 @@ def run_for_instruction(instruction_name: str,
     csv_filename = f"{args.prefix}{run_name}_projection_results.csv"
     csv_path = os.path.join(model_output_dir, csv_filename)
     results.to_csv(csv_path, index=False)
-    print(f"[{instruction_name}] Results saved in file: {csv_path}")
+    print(f"[{instruction_name}] Results for {pop_name} saved in: {csv_path}")
 
     # Plotting warmth and competence
     plot_dimensions = ["Competence", "Warmth"]
@@ -412,7 +421,7 @@ def run_for_instruction(instruction_name: str,
     pdf_filename = f"{args.prefix}{run_name}_warmth_competence_profile.pdf"
     pdf_path = os.path.join(model_output_dir, pdf_filename)
     plt.savefig(pdf_path, bbox_inches="tight")
-    print(f"[{instruction_name}] Warmth/competence profile saved in file: {pdf_path}")
+    print(f"[{instruction_name}] Profile for {pop_name} saved in: {pdf_path}")
     plt.close(fig)
 
 for instr_name, instr_text in instruction_map.items():

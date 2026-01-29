@@ -33,6 +33,22 @@ This fork adds persona/instruction conditioning by prepending an instruction pre
 
 ```bash
 
+python ib_projection.py google/flan-t5-base \
+  --populations populations_crows.json \
+  --examples crows_examples.txt \
+  --instructions instructions.json \
+  --instruction_scope all
+
+```bash
+
+```bash
+
+python ib_projection.py google/flan-t5-small \
+  --populations populations_crows.json \
+  --examples crows_examples.txt \
+  --instructions instructions.json \
+  --instruction_scope all
+
 python ib_projection.py google/flan-t5-small \
   --populations populations_terms.json \
   --examples generated_examples.txt \
@@ -46,7 +62,7 @@ python ib_projection.py meta-llama/Llama-3.2-1B-Instruct \
   --instruction_scope all \
   --hf_token YOUR_HF_TOKEN
 
-  python ib_projection.py google-bert/bert-base-uncased \
+python ib_projection.py google-bert/bert-base-uncased \
   --populations populations_terms.json \
   --examples generated_examples.txt \
   --instructions instructions.json \
