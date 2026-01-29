@@ -34,20 +34,20 @@ This fork adds persona/instruction conditioning by prepending an instruction pre
 ```bash
 
 python projection.py google/flan-t5-small \
-  --populations terms.json \
+  --populations population_terms.json \
   --examples generated_examples.txt \
   --instructions instructions.json \
   --instruction_scope all
 
 python projection.py meta-llama/Llama-3.2-1B-Instruct \
-  --populations terms.json \
+  --populations population_terms.json \
   --examples generated_examples.txt \
   --instructions instructions.json \
   --instruction_scope all \
   --hf_token YOUR_HF_TOKEN
 
   python projection.py google-bert/bert-base-uncased \
-  --populations terms.json \
+  --populations population_terms.json \
   --examples generated_examples.txt \
   --instructions instructions.json \
   --instruction_scope all
@@ -61,20 +61,20 @@ Outputs:
 ```bash
 
 python projection.py google/flan-t5-small \
-  --populations names.json \
+  --populations population_names.json \
   --examples generated_examples.txt \
   --instructions instructions.json \
   --instruction_scope all
 
 python projection.py meta-llama/Llama-3.2-1B-Instruct \
-  --populations names.json \
+  --populations population_names.json \
   --examples generated_examples.txt \
   --instructions instructions.json \
   --instruction_scope all \
   --hf_token YOUR_HF_TOKEN
 
 python projection.py google-bert/bert-base-uncased \
-  --populations names.json \
+  --populations population_names.json \
   --examples generated_examples.txt \
   --instructions instructions.json \
   --instruction_scope population_only
@@ -102,19 +102,19 @@ Running the analysis for female and male associated names, with stereotype dimen
 
 ```
 python projection.py google-bert/bert-base-uncased
---populations names.json
+--populations population_names.json
 --examples generated_examples.txt
 ```
 Running the analysis for gendered terms
 ```
 python projection.py google-bert/bert-base-uncased 
---populations terms.json 
+--populations population_terms.json 
 --examples generated_examples.txt
 ```
 Running with access token for gated models on huggingface
 ```
 python projection.py meta-llama/Meta-Llama-3-8B
---populations names.json 
+--populations population_names.json 
 --examples generated_examples.txt 
 --hf_token {YOUR_TOKEN}
 ```

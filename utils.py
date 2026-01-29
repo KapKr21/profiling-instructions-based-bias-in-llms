@@ -188,14 +188,22 @@ def standardize_new_values(values, mean, std):
     values = list(values)
     return [(value- mean)/std for value in values]
 
-def get_diff(values1,values2):
-    values1 = list(values1)
-    values2 = list(values2)
+def get_diff(values1, values2):
+    values1 = np.array(list(values1), dtype=float)
+    values2 = np.array(list(values2), dtype=float)
     
     mean1, std1 = get_stats(values1)
     mean2, std2 = get_stats(values2)
     diff = mean1 - mean2
-    test_stats, diff_p = ttest_ind(values1, values2)
+    
+    if np.allclose(values1, values1[0]) and np.allclose(values2, values2[0]):
+        test_stats, diff_p = 0.0, 1.0 if np.isclose(mean1, mean2) else 0.0
+    else:
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)
+            test_stats, diff_p = ttest_ind(values1, values2)
+            
     diff_abs = abs(diff)
     
     return mean1, std1, mean2, std2, diff, diff_p, diff_abs

@@ -6,6 +6,15 @@ import nltk
 
 nltk.download("averaged_perceptron_tagger_eng", quiet=True)
 import os
+import warnings
+
+if "HF_HOME" not in os.environ:
+    os.environ["HF_HOME"] = "/Volumes/ExternalSSD/Dev/HuggingFace/hf_cache"
+
+warnings.filterwarnings("ignore", category=FutureWarning, message=".*TRANSFORMERS_CACHE.*")
+
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 from tqdm import tqdm
 from scipy import linalg
 import argparse
@@ -24,7 +33,7 @@ parser.add_argument(
     "--populations",
     help="A json file containing a dictionary of population terms of format {population_name: list[str], population_name: list[str]}.",
     type=str,
-    default="names.json",
+    default="population_names.json",
 )
 parser.add_argument(
     "--examples",
@@ -132,6 +141,9 @@ def run_for_instruction(instruction_name: str,
                         instruction_text: str) -> None:
     safe_instruction = "".join([c if c.isalnum() or c in ("-", "_") else "_" for c in instruction_name.strip()])
     run_name = f"{base_model_name}__{safe_instruction}"
+
+    model_output_dir = os.path.join("results", base_model_name)
+    os.makedirs(model_output_dir, exist_ok=True)
 
     population_only = args.instruction_scope == "population_only"
     build_dictionary = (not population_only) or (instruction_name == "baseline")
@@ -328,7 +340,8 @@ def run_for_instruction(instruction_name: str,
     ]
     results = pd.concat([results, stats], axis=1)
 
-    csv_path = os.path.join(args.output_dir, f"{args.prefix}{run_name}_projection_results.csv")
+    csv_filename = f"{args.prefix}{run_name}_projection_results.csv"
+    csv_path = os.path.join(model_output_dir, csv_filename)
     results.to_csv(csv_path, index=False)
     print(f"[{instruction_name}] Results saved in file: {csv_path}")
 
@@ -396,8 +409,8 @@ def run_for_instruction(instruction_name: str,
     fig.set_figwidth(3.8)
     fig.set_figheight(1.5)
 
-    pdf_path = os.path.join(args.output_dir, 
-                            f"{args.prefix}{run_name}_warmth_competence_profile.pdf")
+    pdf_filename = f"{args.prefix}{run_name}_warmth_competence_profile.pdf"
+    pdf_path = os.path.join(model_output_dir, pdf_filename)
     plt.savefig(pdf_path, bbox_inches="tight")
     print(f"[{instruction_name}] Warmth/competence profile saved in file: {pdf_path}")
     plt.close(fig)
