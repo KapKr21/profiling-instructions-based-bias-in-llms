@@ -12,13 +12,14 @@ import argparse
 import utils
 import matplotlib.pyplot as plt
 
-# Extension: instruction-conditioned profiling
-import instructions  # new module in this extension
+import instructions
 
 device = "auto" if torch.cuda.is_available() else "cpu"
 
 parser = argparse.ArgumentParser()
-parser.add_argument("model", help="A model identifier string on https://huggingface.co", type=str)
+parser.add_argument("model", 
+                    help="A model identifier string on https://huggingface.co", 
+                    type=str)
 parser.add_argument(
     "--populations",
     help="A json file containing a dictionary of population terms of format {population_name: list[str], population_name: list[str]}.",
@@ -45,7 +46,7 @@ parser.add_argument(
 )
 parser.add_argument("--prefix", help="A prefix for the result files.", type=str, default="")
 
-# --- NEW ARGS (iML extension) ---
+#iML extension args
 parser.add_argument(
     "--instructions",
     help="Path to instruction/persona definitions (JSON dict or TXT lines). If omitted, runs baseline only.",
@@ -82,17 +83,13 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-# -----------------------------
-# Loading the dictionaries and specifying dimensions
-# -----------------------------
+#Loading the dictionaries and specifying dimensions
 stereodim_dictionary = pd.read_csv("./stereotype_dimensions_dictionary.csv", index_col=0)
 stereotype_dimensions = ["Sociability", "Morality", "Ability", "Agency", "Status", "Politics", "Religion"]
 warmth_competence_dimensions = {"Warmth": ["Sociability", "Morality"], "Competence": ["Ability", "Agency"]}
 all_dimensions = stereotype_dimensions + list(warmth_competence_dimensions.keys())
 
-# -----------------------------
-# Loading the examples for embedding terms in the stereotype dimensions dictionary
-# -----------------------------
+#Loading the examples for embedding terms in the stereotype dimensions dictionary
 if args.examples != "None":
     max_examples = 5
     context_examples = {}
@@ -104,24 +101,18 @@ if args.examples != "None":
 else:
     no_context = True
 
-# -----------------------------
-# Loading the population terms for projection
-# -----------------------------
+#Loading the population terms for projection
 with open(args.populations, "r") as f:
     populations = js.load(f)
 group1 = list(populations.keys())[0]
 group2 = list(populations.keys())[1]
 
-# -----------------------------
-# Setting up the embedding model and tokenizer
-# -----------------------------
+#Setting up the embedding model and tokenizer
 tokenizer, embedding_model = utils.load_model_for_embedding_retrieval(args.model, device, hf_token=args.hf_token)
 layers = [i for i in range(utils.get_number_of_hidden_states(tokenizer, embedding_model))]
 base_model_name = args.model.split("/")[-1]
 
-# -----------------------------
-# Instruction setup (NEW)
-# -----------------------------
+#Instruction setup (NEW)
 if args.instructions is None:
     instruction_map = {"baseline": ""}
 else:
@@ -129,26 +120,19 @@ else:
     if "baseline" not in instruction_map:
         instruction_map = {"baseline": ""} | instruction_map
 
-
-def _apply_instruction(context: str, instruction_text: str) -> str:
+def _apply_instruction(context: str, 
+                       instruction_text: str) -> str:
     return instructions.apply_instruction_to_context(
         context=context,
         instruction_text=instruction_text,
         template=args.instruction_template,
     )
 
-
-def run_for_instruction(instruction_name: str, instruction_text: str) -> None:
-    """Run the full pipeline for one instruction condition."""
-
+def run_for_instruction(instruction_name: str, 
+                        instruction_text: str) -> None:
     safe_instruction = "".join([c if c.isalnum() or c in ("-", "_") else "_" for c in instruction_name.strip()])
     run_name = f"{base_model_name}__{safe_instruction}"
 
-    # --------------------------------------------------
-    # population_only logic:
-    # - build stereotype dictionary embeddings + axes ONLY for baseline
-    # - reuse baseline axes for all other instructions
-    # --------------------------------------------------
     population_only = args.instruction_scope == "population_only"
     build_dictionary = (not population_only) or (instruction_name == "baseline")
     axes_run_name = f"{base_model_name}__baseline" if population_only else run_name
@@ -156,20 +140,22 @@ def run_for_instruction(instruction_name: str, instruction_text: str) -> None:
     os.makedirs(args.embeddings_dir, exist_ok=True)
     os.makedirs(args.output_dir, exist_ok=True)
 
-    # Ensure axis cache directories exist (baseline dirs in population_only)
     for layer in layers:
-        os.makedirs(os.path.join(args.embeddings_dir, f"{axes_run_name}-L{layer}"), exist_ok=True)
+        os.makedirs(os.path.join(args.embeddings_dir, 
+                                 f"{axes_run_name}-L{layer}"), 
+                                 exist_ok=True)
 
-    # Also ensure output dirs exist for this run (not required, but nice if you later add caching)
     for layer in layers:
-        os.makedirs(os.path.join(args.embeddings_dir, f"{run_name}-L{layer}"), exist_ok=True)
+        os.makedirs(os.path.join(args.embeddings_dir, 
+                                 f"{run_name}-L{layer}"), 
+                                 exist_ok=True)
 
-    # -----------------------------
-    # Retrieving sense embeddings and embeddings of stereotype dimensions
-    # -----------------------------
+    #Retrieving sense embeddings and embeddings of stereotype dimensions
     if build_dictionary:
         embedding_dict = {
-            layer: {"sense_embeddings": [], "sense_embedding_labels": [], "pole_embedding_dict": {}}
+            layer: {"sense_embeddings": [], 
+                    "sense_embedding_labels": [], 
+                    "pole_embedding_dict": {}}
             for layer in layers
         }
 
@@ -205,7 +191,7 @@ def run_for_instruction(instruction_name: str, instruction_text: str) -> None:
                 layer_dict["sense_embeddings"].append(sense_embedding)
                 layer_dict["sense_embedding_labels"].append(f"{term} - {synset} ({dimension}-{direction})")
 
-        # Save pole embeddings into the AXIS RUN directory (baseline if population_only)
+        #Saving pole embeddings into the AXIS RUN directory (baseline if population_only)
         for layer, layer_dict in embedding_dict.items():
             layer_dir = os.path.join(args.embeddings_dir, f"{axes_run_name}-L{layer}")
 
@@ -217,9 +203,7 @@ def run_for_instruction(instruction_name: str, instruction_text: str) -> None:
             with open(os.path.join(layer_dir, "sense_embedding_labels.txt"), "w") as f:
                 for lab in layer_dict["sense_embedding_labels"]:
                     f.write(lab + "\n")
-
     else:
-        # population_only + non-baseline: require baseline axes to exist
         layer0_dir = os.path.join(args.embeddings_dir, f"{axes_run_name}-L0")
         if not os.path.isdir(layer0_dir):
             raise FileNotFoundError(
@@ -227,16 +211,13 @@ def run_for_instruction(instruction_name: str, instruction_text: str) -> None:
                 f"Run baseline first (it should be included in instructions.json) to create them."
             )
 
-    # -----------------------------
-    # Base Change Matrices for Projection
-    # -----------------------------
+    #Base Change Matrices for Projection
     warmth_competence_base_change_inv = {}
     stereodim_base_change_inv = {}
 
     for layer in tqdm(layers, desc=f"[{instruction_name}] Preparing layerwise base change matrices."):
         layer_dir = os.path.join(args.embeddings_dir, f"{axes_run_name}-L{layer}")
 
-        # 7 stereotype dimensions
         stereodim_base_change = []
         for dim in stereotype_dimensions:
             with open(os.path.join(layer_dir, f"{dim}-low_embeddings.npy"), "rb") as f:
@@ -248,12 +229,10 @@ def run_for_instruction(instruction_name: str, instruction_text: str) -> None:
             dim_high_mean_value = np.average(high_pole_embeddings, axis=0)
             stereodim_base_change.append(dim_high_mean_value - dim_low_mean_value)
 
-        # Cache base change for reproducibility (in axis dir)
         with open(os.path.join(layer_dir, "stereodim_base_change.npy"), "wb") as f:
             np.save(f, stereodim_base_change)
         stereodim_base_change_inv[layer] = linalg.pinv(np.transpose(np.vstack(stereodim_base_change)))
 
-        # Warmth and competence (composites)
         warmth_competence_base_change = []
         for wc_dim, subdims in warmth_competence_dimensions.items():
             low_vectors = []
@@ -272,9 +251,7 @@ def run_for_instruction(instruction_name: str, instruction_text: str) -> None:
             np.save(f, warmth_competence_base_change)
         warmth_competence_base_change_inv[layer] = linalg.pinv(np.transpose(np.vstack(warmth_competence_base_change)))
 
-    # -----------------------------
-    # Projection of populations to stereotype dimensions
-    # -----------------------------
+    #Projectioning of populations to stereotype dimensions
     result_dict = {}
     for layer in layers:
         result_dict[f"{run_name}-L{layer}"] = {
@@ -315,7 +292,7 @@ def run_for_instruction(instruction_name: str, instruction_text: str) -> None:
 
     results = pd.concat([pd.DataFrame.from_dict(result_dict[k]) for k in result_dict.keys()])
 
-    # Average over layers for each dimension
+    #Averaging over layers for each dimension
     for dimension in all_dimensions:
         new_row = [run_name] + [dimension] + list(
             results.loc[results["Dimension"] == dimension].set_index(["Model", "Dimension"]).mean(axis=0)
@@ -355,9 +332,7 @@ def run_for_instruction(instruction_name: str, instruction_text: str) -> None:
     results.to_csv(csv_path, index=False)
     print(f"[{instruction_name}] Results saved in file: {csv_path}")
 
-    # -----------------------------
     # Plotting warmth and competence
-    # -----------------------------
     plot_dimensions = ["Competence", "Warmth"]
     polar_labels = {
         "Warmth": {"low": "Low Warmth", "high": "High Warmth"},
@@ -393,10 +368,13 @@ def run_for_instruction(instruction_name: str, instruction_text: str) -> None:
             y_positions,
             linestyle=styles["line"][g],
             color=styles["color"][g],
+            marker = "o",
             label=g,
         )
 
-    ax1.set_yticks(y_positions, labels=tick_labels, fontsize=9)
+    ax1.set_yticks(y_positions, 
+                   labels=tick_labels, 
+                   fontsize=9)
     ax1.set_xlim(-1.0, 1.0)
     ax1.set_xlabel("projected values", fontsize=9)
 
@@ -418,11 +396,11 @@ def run_for_instruction(instruction_name: str, instruction_text: str) -> None:
     fig.set_figwidth(3.8)
     fig.set_figheight(1.5)
 
-    pdf_path = os.path.join(args.output_dir, f"{args.prefix}{run_name}_warmth_competence_profile.pdf")
+    pdf_path = os.path.join(args.output_dir, 
+                            f"{args.prefix}{run_name}_warmth_competence_profile.pdf")
     plt.savefig(pdf_path, bbox_inches="tight")
     print(f"[{instruction_name}] Warmth/competence profile saved in file: {pdf_path}")
     plt.close(fig)
-
 
 for instr_name, instr_text in instruction_map.items():
     run_for_instruction(instr_name, instr_text)

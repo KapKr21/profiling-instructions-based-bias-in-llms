@@ -32,24 +32,25 @@ This fork adds persona/instruction conditioning by prepending an instruction pre
 1) Run the pipeline for all instructions in the file:
 
 ```bash
-python projection.py google-bert/bert-base-uncased \
-  --populations names.json \
-  --examples generated_examples.txt \
-  --instructions instructions.json \
-  --instruction_scope population_only
-
-python projection.py meta-llama/Llama-3.2-1B-Instruct \
-  --populations names.json \
-  --examples generated_examples.txt \
-  --instructions instructions.json \
-  --instruction_scope population_only \
-  --hf_token YOUR_HF_TOKEN
 
 python projection.py google/flan-t5-small \
-  --populations names.json \
+  --populations terms.json \
   --examples generated_examples.txt \
   --instructions instructions.json \
-  --instruction_scope population_only
+  --instruction_scope all
+
+python projection.py meta-llama/Llama-3.2-1B-Instruct \
+  --populations terms.json \
+  --examples generated_examples.txt \
+  --instructions instructions.json \
+  --instruction_scope all \
+  --hf_token YOUR_HF_TOKEN
+
+  python projection.py google-bert/bert-base-uncased \
+  --populations terms.json \
+  --examples generated_examples.txt \
+  --instructions instructions.json \
+  --instruction_scope all
 
 ```bash
 
@@ -58,21 +59,22 @@ Outputs:
 - `./<prefix><model>__<instruction>_warmth_competence_profile.pdf`
 
 ```bash
-python projection.py google-bert/bert-base-uncased \
-  --populations terms.json \
-  --examples generated_examples.txt \
-  --instructions instructions.json \
-  --instruction_scope population_only
-
-python projection.py meta-llama/Llama-3.2-1B-Instruct \
-  --populations terms.json \
-  --examples generated_examples.txt \
-  --instructions instructions.json \
-  --instruction_scope population_only \
-  --hf_token YOUR_HF_TOKEN
 
 python projection.py google/flan-t5-small \
-  --populations terms.json \
+  --populations names.json \
+  --examples generated_examples.txt \
+  --instructions instructions.json \
+  --instruction_scope all
+
+python projection.py meta-llama/Llama-3.2-1B-Instruct \
+  --populations names.json \
+  --examples generated_examples.txt \
+  --instructions instructions.json \
+  --instruction_scope all \
+  --hf_token YOUR_HF_TOKEN
+
+python projection.py google-bert/bert-base-uncased \
+  --populations names.json \
   --examples generated_examples.txt \
   --instructions instructions.json \
   --instruction_scope population_only
