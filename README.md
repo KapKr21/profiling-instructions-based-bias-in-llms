@@ -39,7 +39,38 @@ python ib_projection.py google/flan-t5-base \
   --instructions instructions.json \
   --instruction_scope all
 
+python ib_projection.py google/flan-t5-base \ 
+  --populations populations_terms.json \
+  --examples generated_examples.txt \
+  --instructions instructions.json \
+  --instruction_scope all
+
+python ib_projection.py meta-llama/Llama-3.2-1B-Instruct \
+  --populations populations_crows.json \
+  --examples crows_examples.txt \
+  --instructions instructions.json \
+  --instruction_scope all \
+  --hf_token YOUR_HF_TOKEN
+
+python ib_projection.py meta-llama/Llama-3.2-1B-Instruct \
+  --populations populations_terms.json \
+  --examples generated_examples.txt \
+  --instructions instructions.json \
+  --instruction_scope all \
+  --hf_token YOUR_HF_TOKEN
+
+python ib_projection.py meta-llama/Llama-3.2-1B-Instruct \
+  --populations populations_names.json \
+  --examples generated_examples.txt \
+  --instructions instructions.json \
+  --instruction_scope all \
+  --hf_token YOUR_HF_TOKEN
+
 python ib_projection.py google-bert/bert-base-uncased --populations populations_crows.json --examples crows_examples.txt --instructions instructions.json --instruction_scope all
+
+python ib_projection.py google-bert/bert-base-uncased --populations populations_terms.json --examples generated_examples.txt --instructions instructions.json --instruction_scope all
+
+python ib_projection.py google-bert/bert-base-uncased --populations populations_names.json --examples generated_examples.txt --instructions instructions.json --instruction_scope all
 
 ```bash
 
