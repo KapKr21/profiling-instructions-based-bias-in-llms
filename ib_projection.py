@@ -4,14 +4,17 @@ import torch
 import json as js
 import nltk
 
-nltk.download("averaged_perceptron_tagger_eng", quiet=True)
+nltk.download("averaged_perceptron_tagger_eng", 
+              quiet=True)
 import os
 import warnings
 
 if "HF_HOME" not in os.environ:
     os.environ["HF_HOME"] = "/Volumes/ExternalSSD/Dev/HuggingFace/hf_cache"
 
-warnings.filterwarnings("ignore", category=FutureWarning, message=".*TRANSFORMERS_CACHE.*")
+warnings.filterwarnings("ignore", 
+                        category=FutureWarning, 
+                        message=".*TRANSFORMERS_CACHE.*")
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -55,7 +58,7 @@ parser.add_argument(
 )
 parser.add_argument("--prefix", help="A prefix for the result files.", type=str, default="")
 
-#iML extension args
+#iML (instructinos based) extension arguments
 parser.add_argument(
     "--instructions",
     help="Path to instruction/persona definitions (JSON dict or TXT lines). If omitted, runs baseline only.",
@@ -356,8 +359,7 @@ def run_for_instruction(instruction_name: str,
     results.to_csv(csv_path, index=False)
     print(f"[{instruction_name}] Results for {pop_name} saved in: {csv_path}")
 
-    # Plotting warmth and competence
-    # 1. Define dimensions and polar labels
+    #Plotting warmth and competence
     plot_dimensions = ["Competence", "Warmth"]
     polar_labels = {
         "Warmth": {"low": "Low Warmth", "high": "High Warmth"},
@@ -371,11 +373,10 @@ def run_for_instruction(instruction_name: str,
         "color": {group1: "rebeccapurple", group2: "mediumorchid"},
     }
 
-    # 2. Collect values and labels for plotting
     plot_values = {group1: [], group2: []}
     left_labels = []
     right_labels = []
-    bold_indices = [] # Track indices that are significant
+    bold_indices = []
 
     for i, dim in enumerate(plot_dimensions):
         row = results.loc[(results["Model"] == run_name) & (results["Dimension"] == dim)]
@@ -387,7 +388,6 @@ def run_for_instruction(instruction_name: str,
         low_lab = polar_labels[dim]["low"]
         high_lab = polar_labels[dim]["high"]
 
-        # Handle statistical significance (bold and asterisk)
         if float(row["diff_pvalue"].values[0]) < 0.05:
             high_lab += "$^*$"
             bold_indices.append(i)
@@ -398,7 +398,6 @@ def run_for_instruction(instruction_name: str,
     y_positions = np.arange(len(plot_dimensions))
     ax1.axvline(0, linewidth=0.6, color="gray", alpha=0.6)
 
-    # 3. Plot the group lines
     for g in [group1, group2]:
         ax1.plot(
             plot_values[g],
@@ -409,18 +408,15 @@ def run_for_instruction(instruction_name: str,
             label=g,
         )
 
-    # 4. Set Left Y-Axis (Low Poles)
     ax1.set_yticks(y_positions)
     ax1.set_yticklabels(left_labels, fontsize=9)
     for i, label in enumerate(ax1.get_yticklabels()):
         if i in bold_indices:
             label.set_fontweight("bold")
 
-    # 5. Set X-Axis Limits (Centered at 0)
     ax1.set_xlim(-1.0, 1.0)
     ax1.set_xlabel("projected values", fontsize=8)
 
-    # 6. Set Right Y-Axis (High Poles) - MATCHING THE PAPER STYLE
     ax2 = ax1.twinx()
     ax2.set_ylim(ax1.get_ylim())
     ax2.set_yticks(y_positions)
@@ -429,7 +425,6 @@ def run_for_instruction(instruction_name: str,
         if i in bold_indices:
             label.set_fontweight("bold")
 
-    # 7. Final formatting
     ax1.set_title(f"{base_model_name} ({instruction_name})", fontsize=9)
     ax1.legend(loc='upper center', bbox_to_anchor=(0.5, -0.4), ncol=2, fontsize=9)
 

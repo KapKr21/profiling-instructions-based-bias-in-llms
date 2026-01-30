@@ -1,12 +1,30 @@
 
-# Profiling Bias in LLMs: Stereotype Dimensions in Contextual Word Embeddings
+# Instruction-Conditioned Bias Profiling in Language Models
 
-### Abstract
+This repository provides a framework for profiling social bias in contextual word embeddings using stereotype dimensions derived from social psychology. The pipeline supports instruction-conditioned analysis, allowing users to study how personas (e.g., conservative, liberal, leftist) reshape internal bias representations across different models (Llama-3.2-1B-Instruct, BERT-base-uncased, and Flan-T5).
 
-Large language models (LLMs) are the foundation of the current successes of artificial intelligence (AI), however, they are unavoidably biased. To effectively communicate the risks and encourage mitigation efforts these models need adequate and intuitive descriptions of their discriminatory properties, appropriate for all audiences of AI. We suggest bias profiles with respect to stereotype dimensions based on dictionaries from social psychology research. Along these dimensions we investigate gender bias in contextual embeddings, across contexts and layers, and generate stereotype profiles for twelve different LLMs, demonstrating their intuition and use case for exposing and visualizing bias.
+The code is adapted from prior work on stereotype-based embedding analysis and extended for interpretability-focused machine learning (iML) experiments.
 
+### Overview
 
-***Please cite our paper when using this work for your project:***
+Large models encode social associations that can surface as biased behavior. Instead of evaluating bias only through downstream tasks, this project examines representation-level bias by:
+
+- Defining interpretable stereotype dimensions (e.g. sociability, morality, ability, agency, status, politics, and Religion)
+
+- Embedding population terms (names, gendered terms, CrowS-Pairs dataset targets)
+
+- Projecting those embeddings onto stereotype axes
+
+- Visualizing results as:
+
+  -- Warmth–Competence summaries
+
+The instruction-conditioned extension enables analysis of how prompts and personas change these internal representations, rather than only changing model outputs.
+
+### Citation
+
+This repository builds on the methodology introduced in the following paper.
+
 ~~~
 @inproceedings{
 schuster2024profiling,
@@ -25,173 +43,194 @@ conda env create -f ib-profiling-env.yaml
 conda activate ib-profiling-env
 ```
 
-## iML Extension: Instruction-conditioned profiling
+### Instruction-Conditioned Profiling (iML Extension)
 
-This fork adds persona/instruction conditioning by prepending an instruction prefix to every context fed into the model.
+This fork extends the original pipeline by prepending instructions or personas to every context passed to the model.
 
-1) Run the pipeline for all instructions in the file:
+Following instruction scope is supported:
 
-```bash
+- all: instructions affect both stereotype axes and populations
 
+Command Categories
+
+Below, commands are grouped by dataset type and model (Llama-3.2-1B-Instruct, BERT-base-uncased, and Flan-T5).
+
+### CrowS-Pairs–based Populations
+
+Used to study implicit stereotypes underlying sentence-pair bias benchmarks.
+
+FLAN-T5
+
+```
+python ib_projection.py google/flan-t5-small \
+  --populations populations_crows.json \
+  --examples crows_examples.txt \
+  --instructions instructions.json \
+  --instruction_scope all
+```
+
+```
 python ib_projection.py google/flan-t5-base \
   --populations populations_crows.json \
   --examples crows_examples.txt \
   --instructions instructions.json \
   --instruction_scope all
+```
 
-python ib_projection.py google/flan-t5-base \ 
-  --populations populations_terms.json \
-  --examples generated_examples.txt \
-  --instructions instructions.json \
-  --instruction_scope all
+LLaMA-3.2-1B-Instruct
 
+```
 python ib_projection.py meta-llama/Llama-3.2-1B-Instruct \
   --populations populations_crows.json \
   --examples crows_examples.txt \
   --instructions instructions.json \
   --instruction_scope all \
   --hf_token YOUR_HF_TOKEN
+```
 
-python ib_projection.py meta-llama/Llama-3.2-1B-Instruct \
-  --populations populations_terms.json \
-  --examples generated_examples.txt \
-  --instructions instructions.json \
-  --instruction_scope all \
-  --hf_token YOUR_HF_TOKEN
+BERT
 
-python ib_projection.py meta-llama/Llama-3.2-1B-Instruct \
-  --populations populations_names.json \
-  --examples generated_examples.txt \
-  --instructions instructions.json \
-  --instruction_scope all \
-  --hf_token YOUR_HF_TOKEN
-
-python ib_projection.py google-bert/bert-base-uncased --populations populations_crows.json --examples crows_examples.txt --instructions instructions.json --instruction_scope all
-
-python ib_projection.py google-bert/bert-base-uncased --populations populations_terms.json --examples generated_examples.txt --instructions instructions.json --instruction_scope all
-
-python ib_projection.py google-bert/bert-base-uncased --populations populations_names.json --examples generated_examples.txt --instructions instructions.json --instruction_scope all
-
-```bash
-
-```bash
-
-python ib_projection.py google/flan-t5-small \
+```
+python ib_projection.py google-bert/bert-base-uncased \
   --populations populations_crows.json \
   --examples crows_examples.txt \
   --instructions instructions.json \
   --instruction_scope all
+```
 
+### Gendered Terms (WEAT-style)
+
+Used for controlled lexical bias analysis.
+
+```
 python ib_projection.py google/flan-t5-small \
   --populations populations_terms.json \
   --examples generated_examples.txt \
   --instructions instructions.json \
   --instruction_scope all
+```
 
+```
+python ib_projection.py google/flan-t5-base \
+  --populations populations_terms.json \
+  --examples generated_examples.txt \
+  --instructions instructions.json \
+  --instruction_scope all
+```
+
+```
 python ib_projection.py meta-llama/Llama-3.2-1B-Instruct \
   --populations populations_terms.json \
   --examples generated_examples.txt \
   --instructions instructions.json \
   --instruction_scope all \
   --hf_token YOUR_HF_TOKEN
+```
 
+```
 python ib_projection.py google-bert/bert-base-uncased \
   --populations populations_terms.json \
   --examples generated_examples.txt \
   --instructions instructions.json \
   --instruction_scope all
+```
 
-```bash
+### Name-Based Populations
 
-Outputs:
-- `./<prefix><model>__<instruction>_projection_results.csv`
-- `./<prefix><model>__<instruction>_warmth_competence_profile.pdf`
+Used to probe demographic associations through personal names.
 
-```bash
-
+```
 python ib_projection.py google/flan-t5-small \
   --populations populations_names.json \
   --examples generated_examples.txt \
   --instructions instructions.json \
   --instruction_scope all
+```
 
+```
+python ib_projection.py google/flan-t5-base \
+  --populations populations_names.json \
+  --examples generated_examples.txt \
+  --instructions instructions.json \
+  --instruction_scope all
+```
+
+```
 python ib_projection.py meta-llama/Llama-3.2-1B-Instruct \
   --populations populations_names.json \
   --examples generated_examples.txt \
   --instructions instructions.json \
   --instruction_scope all \
   --hf_token YOUR_HF_TOKEN
+```
 
+```
 python ib_projection.py google-bert/bert-base-uncased \
   --populations populations_names.json \
   --examples generated_examples.txt \
   --instructions instructions.json \
-  --instruction_scope population_only
+  --instruction_scope all
+```
 
-```bash
+### Outputs
 
-Notes:
-- `--instruction_scope all` recomputes the stereotype space under each instruction (recommended).
-- `--instruction_scope population_only` keeps the stereotype space fixed (baseline) and conditions only the projected populations.
+Each run produces:
 
-2) Create an instruction file (JSON dict mapping name -> instruction text), e.g. `instructions.json`: for example to add more instructions, for now only 3
+*_projection_results.csv
+→ layer-wise and dimension-wise projection scores
 
-```json
+*_warmth_competence_profile.pdf
+→ 2D summary plot (Warmth vs Competence)
+
+### Instruction File Format
+
+Instructions are defined as a JSON dictionary:
+
 {
   "baseline": "",
   "conservative": "You are conservative",
   "liberal": "You are liberal",
   "leftist": "You are leftist"
 }
-```
 
-#Baseline commands from the paper 
+Each instruction is treated as a semantic intervention on the model’s embedding space.
 
-Running the analysis for female and male associated names, with stereotype dimensions embedded by generated gender non-specific examples.
+### Notes on Instruction Scope
 
-```
-python ib_projection.py google-bert/bert-base-uncased
---populations populations_names.json
---examples generated_examples.txt
-```
-Running the analysis for gendered terms
-```
-python ib_projection.py google-bert/bert-base-uncased 
---populations populations_terms.json 
---examples generated_examples.txt
-```
-Running with access token for gated models on huggingface
-```
-python ib_projection.py meta-llama/Meta-Llama-3-8B
---populations populations_names.json 
---examples generated_examples.txt 
---hf_token {YOUR_TOKEN}
-```
+--instruction_scope all
+Recomputes stereotype axes under each instruction
+Recommended for interpretability analysis
 
-## Resources
+--instruction_scope population_only
+Keeps stereotype axes fixed to baseline
+Useful for controlled comparisons
 
+### 
+Resources
+Stereotype Dictionaries
 
-Dictionaries of the stereotype content model ([Nicolas, 2021](https://onlinelibrary.wiley.com/doi/abs/10.1002/ejsp.2724)), available from https://osf.io/yx45f/
-- Seed dictionary: https://osf.io/ghfkb
-- Full dictionary: https://osf.io/m9nb5
+Based on the Stereotype Content Model:
 
-### Vocabulary populations
+Seed dictionary: https://osf.io/ghfkb
 
-Female and male associated names: USA "Top Names Over the Last 100 Years", retrieved September 2024 from https://www.ssa.gov/oact/babynames/decades/century.html
+Full dictionary: https://osf.io/m9nb5
 
-Binary gendered terms: Combination of terms from WEAT experiments ([Caliskan, 2017](https://www.science.org/doi/abs/10.1126/science.aal4230)), Math vs Arts and Science vs Arts, italic terms excluded
-- Female: female, woman, girl, sister, she, daughter,mother, aunt, grandmother, *hers*, *her*
-- Male: male, man, boy, brother, he, son, father, uncle, grandfather, *his*, *him*
+Vocabulary Sources
 
+Names
+US Social Security Administration, top names over the last 100 years.
 
-### Literature
+Gendered Terms
+Adapted from WEAT-style experiments (Caliskan et al., 2017).
 
-Caliskan, A., Bryson, J. J., & Narayanan, A. (2017). Semantics derived automatically from language corpora contain human-like biases. Science, 356(6334), 183-186.
+### References
 
-Engler, J., Sikdar, S., Lutz, M., & Strohmaier, M. (2022, December). SensePOLAR: Word sense aware interpretability for pre-trained contextual word embeddings. In Findings of the Association for Computational Linguistics: EMNLP 2022 (pp. 4607-4619).
+Caliskan et al. (2017). Semantics derived automatically from language corpora contain human-like biases. Science.
 
-Fraser, K. C., Nejadgholi, I., & Kiritchenko, S. (2021, August). Understanding and Countering Stereotypes: A Computational Approach to the Stereotype Content Model. In Proceedings of the 59th Annual Meeting of the Association for Computational Linguistics and the 11th International Joint Conference on Natural Language Processing (Volume 1: Long Papers) (pp. 600-616).
+Engler et al. (2022). SensePOLAR. EMNLP Findings.
 
-Mathew, B., Sikdar, S., Lemmerich, F., & Strohmaier, M. (2020, April). The polar framework: Polar opposites enable interpretability of pre-trained word embeddings. In Proceedings of The Web Conference 2020 (pp. 1548-1558).
+Fraser et al. (2021). Understanding and Countering Stereotypes. ACL-IJCNLP.
 
-Nicolas, G., Bai, X., & Fiske, S. T. (2021). Comprehensive stereotype content dictionaries using a semi‐automated method. European Journal of Social Psychology, 51(1), 178-196.
+Mathew et al. (2020). The Polar Framework. WWW.
+
+Nicolas et al. (2021). Comprehensive stereotype content dictionaries. EJSP.

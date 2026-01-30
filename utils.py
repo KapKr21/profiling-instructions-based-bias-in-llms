@@ -85,7 +85,6 @@ def get_number_of_hidden_states_from_name(embedding_model_name, device):
 def get_examples_with_term(term, examples):
     return([example for example in examples if term in example.split(" ")])
 
-#Wordnet helper functions
 def get_wn_synset(term, pos, sense):
     wn_pos = None
     if pos == 'ADJECTIVE':
@@ -149,7 +148,6 @@ def get_all_noun_and_adjective_synsets(term):
     
     return(synsets, definitions, examples)
 
-#Defining the templates for gendered terms or names
 TEMPLATES = ['this is ', 
              'that is ', 
              'there is ', 
@@ -170,7 +168,6 @@ def fill_template(gendered_term, TEMPLATE, isNNP=False):
     else:
         return(TEMPLATE + gendered_term)
     
-#Simple function for statistical analysis
 def get_stats(values):
     values = list(values)
     mean = np.mean(values)
@@ -211,7 +208,6 @@ def get_diff(values1, values2):
     
     return mean1, std1, mean2, std2, diff, diff_p, diff_abs
 
-#Instruction conditioning helpers (project extension)
 def load_instructions(path: str) -> Dict[str, str]:
     from instructions import load_instructions as _load
     return _load(Path(path))

@@ -1,3 +1,4 @@
+#CPU reproducible environment
 name: ib-profiling-env
 
 channels:
@@ -22,5 +23,3 @@ dependencies:
       - accelerate
       - sentencepiece
       - tqdm
-
-#changes for Mac Intel 2017 (Only CPU)
