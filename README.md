@@ -43,6 +43,19 @@ conda env create -f ib-profiling-env.yaml
 conda activate ib-profiling-env
 ```
 
+### Model Weights
+
+All experiments use publicly available, pretrained model checkpoints loaded via the Hugging Face Transformers library.
+
+No fine-tuning or parameter updates are performed. All model weights are used in inference-only mode for embedding extraction.
+
+Some models (e.g. LLaMA family) require acceptance of usage terms and an access token from Hugging Face.
+
+The following pretrained checkpoints were used:
+- meta-llama/Llama-3.2-1B-Instruct
+- google-bert/bert-base-uncased
+- google/flan-t5-base
+
 ### Instructions based Profiling (iML Extension)
 
 This fork extends the original pipeline by prepending instructions or personas to every context passed to the model.
