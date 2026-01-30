@@ -7,19 +7,19 @@ The code is adapted from prior work on stereotype-based embedding analysis and e
 
 ### Overview
 
-Large models encode social associations that can surface as biased behavior. Instead of evaluating bias only through downstream tasks, this project examines representation-level bias by:
+Language models encode social associations that can surface as biased behavior. Instead of evaluating bias only through downstream tasks, this project examines representation-level bias by:
 
-- Defining interpretable stereotype dimensions (e.g. sociability, morality, ability, agency, status, politics, and Religion)
+- Defining interpretable stereotype dimensions (e.g. sociability, morality, ability, agency, status, politics, and religion)
 
 - Embedding population terms (names, gendered terms, CrowS-Pairs dataset targets)
 
 - Projecting those embeddings onto stereotype axes
 
-- Visualizing results as:
+- Visualising results as:
 
   -- Warmth–Competence summaries
 
-The instruction-conditioned extension enables analysis of how prompts and personas change these internal representations, rather than only changing model outputs.
+The instruction-conditioned extension enables analysis of how personas change these internal representations.
 
 ### Citation
 
@@ -43,7 +43,7 @@ conda env create -f ib-profiling-env.yaml
 conda activate ib-profiling-env
 ```
 
-### Instruction-Conditioned Profiling (iML Extension)
+### Instructions based Profiling (iML Extension)
 
 This fork extends the original pipeline by prepending instructions or personas to every context passed to the model.
 
@@ -51,23 +51,15 @@ Following instruction scope is supported:
 
 - all: instructions affect both stereotype axes and populations
 
-Command Categories
+### Command Categories
 
 Below, commands are grouped by dataset type and model (Llama-3.2-1B-Instruct, BERT-base-uncased, and Flan-T5).
 
-### CrowS-Pairs–based Populations
+- CrowS-Pairs–based Populations
 
 Used to study implicit stereotypes underlying sentence-pair bias benchmarks.
 
 FLAN-T5
-
-```
-python ib_projection.py google/flan-t5-small \
-  --populations populations_crows.json \
-  --examples crows_examples.txt \
-  --instructions instructions.json \
-  --instruction_scope all
-```
 
 ```
 python ib_projection.py google/flan-t5-base \
@@ -98,17 +90,9 @@ python ib_projection.py google-bert/bert-base-uncased \
   --instruction_scope all
 ```
 
-### Gendered Terms (WEAT-style)
+- Gendered Terms (WEAT-style)
 
 Used for controlled lexical bias analysis.
-
-```
-python ib_projection.py google/flan-t5-small \
-  --populations populations_terms.json \
-  --examples generated_examples.txt \
-  --instructions instructions.json \
-  --instruction_scope all
-```
 
 ```
 python ib_projection.py google/flan-t5-base \
@@ -135,17 +119,9 @@ python ib_projection.py google-bert/bert-base-uncased \
   --instruction_scope all
 ```
 
-### Name-Based Populations
+- Name-Based Populations
 
 Used to probe demographic associations through personal names.
-
-```
-python ib_projection.py google/flan-t5-small \
-  --populations populations_names.json \
-  --examples generated_examples.txt \
-  --instructions instructions.json \
-  --instruction_scope all
-```
 
 ```
 python ib_projection.py google/flan-t5-base \
@@ -188,9 +164,9 @@ Instructions are defined as a JSON dictionary:
 
 {
   "baseline": "",
-  "conservative": "You are conservative",
-  "liberal": "You are liberal",
-  "leftist": "You are leftist"
+  "conservative": "You are conservative.",
+  "liberal": "You are liberal.",
+  "leftist": "You are leftist."
 }
 
 Each instruction is treated as a semantic intervention on the model’s embedding space.
@@ -205,9 +181,9 @@ Recommended for interpretability analysis
 Keeps stereotype axes fixed to baseline
 Useful for controlled comparisons
 
-### 
-Resources
-Stereotype Dictionaries
+### Resources
+
+- Stereotype Dictionaries
 
 Based on the Stereotype Content Model:
 
@@ -215,7 +191,7 @@ Seed dictionary: https://osf.io/ghfkb
 
 Full dictionary: https://osf.io/m9nb5
 
-Vocabulary Sources
+- Vocabulary Sources
 
 Names
 US Social Security Administration, top names over the last 100 years.
