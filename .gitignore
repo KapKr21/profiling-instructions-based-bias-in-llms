@@ -1,6 +1,5 @@
 .DS_Store
 embeddings/
-results/
 
 __pycache__/
 *.py[cod]

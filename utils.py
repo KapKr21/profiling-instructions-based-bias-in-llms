@@ -29,14 +29,17 @@ def get_word_embedding_by_layer(tokenizer, model, context, word, layers):
 
     if hasattr(encoded_context, "to"):
         encoded_context = encoded_context.to(model.device)
-    else:
-        encoded_context = {k: v.to(model.device) for k, v in encoded_context.items()}
 
     with torch.no_grad():
-        outputs = model(**encoded_context, output_hidden_states=True)
+        if "t5" in model.config.model_type.lower():
+            if hasattr(model, "encoder"):
+                outputs = model.encoder(**encoded_context, output_hidden_states=True)
+            else:
+                outputs = model(**encoded_context, output_hidden_states=True)
+        else:
+            outputs = model(**encoded_context, output_hidden_states=True)
 
     hidden_states = outputs.hidden_states
-
     idxs = get_word_idx(tokenizer, encoded_context, word)
     if len(idxs) == 0:
         idxs = [0]

@@ -149,7 +149,7 @@ def run_for_instruction(instruction_name: str,
     safe_instruction = "".join([c if c.isalnum() or c in ("-", "_") else "_" for c in instruction_name.strip()])
     pop_name = os.path.splitext(os.path.basename(args.populations))[0]
 
-    run_name = f"{base_model_name}__{safe_instruction}__{pop_name}"
+    run_name = f"{safe_instruction}_{pop_name}"
 
     model_output_dir = os.path.join("results", base_model_name)
     os.makedirs(model_output_dir, exist_ok=True)
@@ -192,9 +192,11 @@ def run_for_instruction(instruction_name: str,
             dimension = row["dimension"]
             direction = row["dir"]
 
-            contexts = [term] if no_context else context_examples.get(term + " - " + synset, [])
+            key = f"{term} - {synset}"
+            contexts = context_examples.get(key, context_examples.get(term, []))
+
             if len(contexts) == 0:
-                continue
+                contexts = [term]
 
             if apply_instr_to_dict and (not no_context):
                 contexts = [_apply_instruction(c, instruction_text) for c in contexts]
@@ -355,6 +357,7 @@ def run_for_instruction(instruction_name: str,
     print(f"[{instruction_name}] Results for {pop_name} saved in: {csv_path}")
 
     # Plotting warmth and competence
+    # 1. Define dimensions and polar labels
     plot_dimensions = ["Competence", "Warmth"]
     polar_labels = {
         "Warmth": {"low": "Low Warmth", "high": "High Warmth"},
@@ -368,55 +371,70 @@ def run_for_instruction(instruction_name: str,
         "color": {group1: "rebeccapurple", group2: "mediumorchid"},
     }
 
-    values = []
-    tick_labels = []
-    bold_labels = []
-    for dim in plot_dimensions:
-        row = results.loc[(results["Model"] == run_name) & (results["Dimension"] == dim)]
-        if row.empty:
-            continue
-        dim_vals = [float(row[f"{group1}_mean"].values[0]), float(row[f"{group2}_mean"].values[0])]
-        values.append(dim_vals)
-        tick_labels.append(dim)
-        if float(row["diff_pvalue"].values[0]) < 0.05:
-            bold_labels.append(dim)
+    # 2. Collect values and labels for plotting
+    plot_values = {group1: [], group2: []}
+    left_labels = []
+    right_labels = []
+    bold_indices = [] # Track indices that are significant
 
-    y_positions = np.arange(len(tick_labels))
+    for i, dim in enumerate(plot_dimensions):
+        row = results.loc[(results["Model"] == run_name) & (results["Dimension"] == dim)]
+        if row.empty: continue
+        
+        for g in [group1, group2]:
+            plot_values[g].append(float(row[f"{g}_mean"].values[0]))
+
+        low_lab = polar_labels[dim]["low"]
+        high_lab = polar_labels[dim]["high"]
+
+        # Handle statistical significance (bold and asterisk)
+        if float(row["diff_pvalue"].values[0]) < 0.05:
+            high_lab += "$^*$"
+            bold_indices.append(i)
+        
+        left_labels.append(low_lab)
+        right_labels.append(high_lab)
+
+    y_positions = np.arange(len(plot_dimensions))
     ax1.axvline(0, linewidth=0.6, color="gray", alpha=0.6)
 
-    for gi, g in enumerate([group1, group2]):
+    # 3. Plot the group lines
+    for g in [group1, group2]:
         ax1.plot(
-            [v[gi] for v in values],
+            plot_values[g],
             y_positions,
             linestyle=styles["line"][g],
             color=styles["color"][g],
-            marker = "o",
+            marker="o",
             label=g,
         )
 
-    ax1.set_yticks(y_positions, 
-                   labels=tick_labels, 
-                   fontsize=9)
-    ax1.set_xlim(-1.0, 1.0)
-    ax1.set_xlabel("projected values", fontsize=9)
-
-    ax2 = ax1.twinx()
-    ax2.set_ylim(ax1.get_ylim())
-    ax2.set_yticks(
-        y_positions,
-        labels=[f"{polar_labels[d]['low']}  |  {polar_labels[d]['high']}" for d in tick_labels],
-        fontsize=8,
-    )
-
-    for label in ax1.get_yticklabels():
-        if label.get_text() in bold_labels:
+    # 4. Set Left Y-Axis (Low Poles)
+    ax1.set_yticks(y_positions)
+    ax1.set_yticklabels(left_labels, fontsize=9)
+    for i, label in enumerate(ax1.get_yticklabels()):
+        if i in bold_indices:
             label.set_fontweight("bold")
 
-    ax1.set_title(f"{base_model_name} ({instruction_name})", fontsize=9)
-    ax1.legend(bbox_to_anchor=(1, -0.45), ncol=2, fontsize=9)
+    # 5. Set X-Axis Limits (Centered at 0)
+    ax1.set_xlim(-1.0, 1.0)
+    ax1.set_xlabel("projected values", fontsize=8)
 
-    fig.set_figwidth(3.8)
-    fig.set_figheight(1.5)
+    # 6. Set Right Y-Axis (High Poles) - MATCHING THE PAPER STYLE
+    ax2 = ax1.twinx()
+    ax2.set_ylim(ax1.get_ylim())
+    ax2.set_yticks(y_positions)
+    ax2.set_yticklabels(right_labels, fontsize=9)
+    for i, label in enumerate(ax2.get_yticklabels()):
+        if i in bold_indices:
+            label.set_fontweight("bold")
+
+    # 7. Final formatting
+    ax1.set_title(f"{base_model_name} ({instruction_name})", fontsize=9)
+    ax1.legend(loc='upper center', bbox_to_anchor=(0.5, -0.4), ncol=2, fontsize=9)
+
+    fig.set_figwidth(3.5)
+    fig.set_figheight(1.3)
 
     pdf_filename = f"{args.prefix}{run_name}_warmth_competence_profile.pdf"
     pdf_path = os.path.join(model_output_dir, pdf_filename)
