@@ -174,12 +174,10 @@ Each instruction is treated as a semantic intervention on the model’s embeddin
 ### Notes on Instruction Scope
 
 --instruction_scope all
-Recomputes stereotype axes under each instruction
-Recommended for interpretability analysis
 
---instruction_scope population_only
-Keeps stereotype axes fixed to baseline
-Useful for controlled comparisons
+Recomputes stereotype axes under each instruction
+
+Recommended for interpretability analysis
 
 ### Resources
 
@@ -207,6 +205,6 @@ Engler et al. (2022). SensePOLAR. EMNLP Findings.
 
 Fraser et al. (2021). Understanding and Countering Stereotypes. ACL-IJCNLP.
 
-Mathew et al. (2020). The Polar Framework. WWW.
+Mathew et al. (2020). The Polar Framework.
 
 Nicolas et al. (2021). Comprehensive stereotype content dictionaries. EJSP.
