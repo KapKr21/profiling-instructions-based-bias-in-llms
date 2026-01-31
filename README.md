@@ -1,5 +1,5 @@
 
-## Profiling Instructions-Based Bias in Large Language Models (iML Project 2025/26)
+# Profiling Instructions-Based Bias in Large Language Models (iML Project 2025/26)
 
 This repository contains a framework for profiling social bias in contextual word embeddings using stereotype dimensions derived from social psychology. Building upon original research in stereotype-based embedding analysis, this fork introduces an instruction-conditioned analysis pipeline.
 
@@ -21,6 +21,7 @@ Language Models (LMs) encode complex social associations that often manifest as 
 
 This repository is an extension of the methodology introduced in the following paper. If you use this code, please cite:
 
+```
 @inproceedings{
   schuster2024profiling,
   title={Profiling Bias in {LLM}s: Stereotype Dimensions in Contextual Word Embeddings},
@@ -28,8 +29,9 @@ This repository is an extension of the methodology introduced in the following p
   booktitle={The Joint 25th Nordic Conference on Computational Linguistics and 11th Baltic Conference on Human Language Technologies},
   year={2024}
 }
+```
 
-### Getting Started
+## Getting Started
 
 - Install the open-source-distribution [anaconda](https://www.anaconda.com/download).
 
@@ -179,7 +181,7 @@ Each execution generates two primary artifacts:
 
 ## Resources & References
 
-Data Sources
+### Data Sources
 
 - CrowS-Pairs Dataset: A challenge [dataset](nyu-mll/crows-pairs) for measuring social biases in language models.
 
