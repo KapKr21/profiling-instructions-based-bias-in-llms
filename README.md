@@ -202,3 +202,5 @@ Each execution generates two primary artifacts:
 - Mathew et al. (2020). The Polar Framework.
 
 - Caliskan et al. (2017): Semantics derived automatically from language corpora contain human-like biases.
+
+- Bolukbasi et al. Man is to computer programmer as woman is to homemaker? debiasing word embeddings. In Advances in Neural Information Processing Systems, 2016.
