@@ -1,43 +1,40 @@
 
-# Instruction-Conditioned Bias Profiling in Language Models
+## Profiling Instructions-Based Bias in Large Language Models (iML Project 2025/26)
 
-This repository provides a framework for profiling social bias in contextual word embeddings using stereotype dimensions derived from social psychology. The pipeline supports instruction-conditioned analysis, allowing users to study how personas (e.g., conservative, liberal, leftist) reshape internal bias representations across different models (Llama-3.2-1B-Instruct, BERT-base-uncased, and Flan-T5).
+This repository contains a framework for profiling social bias in contextual word embeddings using stereotype dimensions derived from social psychology. Building upon original research in stereotype-based embedding analysis, this fork introduces an instruction-conditioned analysis pipeline.
 
-The code is adapted from prior work on stereotype-based embedding analysis and extended for interpretability-focused machine learning (iML) experiments.
+This extension allows researchers to study how specific personas (e.g., conservative, liberal, or leftist) shift the internal bias representations within state-of-the-art models like Llama-3.2, BERT, and Flan-T5.
 
 ### Overview
 
-Language models encode social associations that can surface as biased behavior. Instead of evaluating bias only through downstream tasks, this project examines representation-level bias by:
+Language Models (LMs) encode complex social associations that often manifest as biased behavior. This project moves beyond downstream task evaluation to examine representation-level bias by:
 
-- Defining interpretable stereotype dimensions (e.g. sociability, morality, ability, agency, status, politics, and religion)
+- Defining Interpretable Dimensions: Utilizing social psychology axes such as sociability, morality, ability, agency, status, politics, and religion.
 
-- Embedding population terms (names, gendered terms, CrowS-Pairs dataset targets)
+- Embedding Populations: Mapping demographic terms (names, gendered terms, and CrowS-Pairs targets) into the model's latent space.
 
-- Projecting those embeddings onto stereotype axes
+- Geometric Projection: Projecting population embeddings onto predefined stereotype axes.
 
-- Visualising results as:
-
-  -- Warmth–Competence summaries
-
-The instruction-conditioned extension enables analysis of how personas change these internal representations.
+- Visualizing Shifts: Generating Warmth–Competence summaries to observe how different personas alter the model's "worldview."
 
 ### Citation
 
-This repository builds on the methodology introduced in the following paper.
+This repository is an extension of the methodology introduced in the following paper. If you use this code, please cite:
 
-~~~
 @inproceedings{
-schuster2024profiling,
-title={Profiling Bias in {LLM}s: Stereotype Dimensions in Contextual Word Embeddings},
-author={Carolin M. Schuster and Maria-Alexandra Dinisor and Shashwat Ghatiwala and Georg Groh},
-booktitle={The Joint 25th Nordic Conference on Computational Linguistics and 11th Baltic Conference on Human Language Technologies},
-year={2024}
+  schuster2024profiling,
+  title={Profiling Bias in {LLM}s: Stereotype Dimensions in Contextual Word Embeddings},
+  author={Carolin M. Schuster and Maria-Alexandra Dinisor and Shashwat Ghatiwala and Georg Groh},
+  booktitle={The Joint 25th Nordic Conference on Computational Linguistics and 11th Baltic Conference on Human Language Technologies},
+  year={2024}
 }
-~~~
 
-# Usage
+### Getting Started
 
-Environment
+- Install the open-source-distribution [anaconda](https://www.anaconda.com/download).
+
+- Create a new environment with python 3.9 using following commands and activate it.
+
 ```
 conda env create -f ib-profiling-env.yaml
 conda activate ib-profiling-env
@@ -45,32 +42,43 @@ conda activate ib-profiling-env
 
 ### Model Weights
 
-All experiments use publicly available, pretrained model checkpoints loaded via the Hugging Face Transformers library.
+We use pretrained checkpoints from the Hugging Face Transformers library. All models are used in inference-only mode and no fine-tuning is performed.
 
-No fine-tuning or parameter updates are performed. All model weights are used in inference-only mode for embedding extraction.
+- Decoder only: meta-llama/Llama-3.2-1B-Instruct (Requires HF access token)
 
-Some models (e.g. LLaMA family) require acceptance of usage terms and an access token from Hugging Face.
+- Encoder-only: google-bert/bert-base-uncased
 
-The following pretrained checkpoints were used:
-- meta-llama/Llama-3.2-1B-Instruct
-- google-bert/bert-base-uncased
-- google/flan-t5-base
+- Encoder-Decoder (Seq2Seq): google/flan-t5-base
 
-### Instructions based Profiling (iML Extension)
 
-This fork extends the original pipeline by prepending instructions or personas to every context passed to the model.
+## Instructions-Based Profiling (iML Extension)
 
-Following instruction scope is supported:
+This extension prepends specific instructions or personas to every context passed to the model.
 
-- all: instructions affect both stereotype axes and populations
+### Instruction Scope
 
-### Command Categories
+   - --instruction_scope all: The provided instructions influence both the stereotype axes and the population embeddings, allowing for a complete re-centering of the model's semantic space based on the persona.
 
-Below, commands are grouped by dataset type and model (Llama-3.2-1B-Instruct, BERT-base-uncased, and Flan-T5).
+### Instruction Configuration
 
-- CrowS-Pairs–based Populations
+Instructions are defined in a instructions.json file. Example format:
 
-Used to study implicit stereotypes underlying sentence-pair bias benchmarks.
+```
+{
+  "baseline": "",
+  "conservative": "You are conservative.",
+  "liberal": "You are liberal.",
+  "leftist": "You are leftist."
+}
+```
+
+### Execution Guide
+
+The following commands demonstrate how to run the profiling pipeline across different datasets and models.
+
+1. CrowS-Pairs Populations
+
+Analyzing implicit stereotypes within sentence-pair bias benchmarks.
 
 FLAN-T5
 
@@ -103,9 +111,9 @@ python ib_projection.py google-bert/bert-base-uncased \
   --instruction_scope all
 ```
 
-- Gendered Terms (WEAT-style)
+2. Gendered Terms (WEAT-style)
 
-Used for controlled lexical bias analysis.
+Using for controlled lexical bias analysis using gender-specific terminology.
 
 ```
 python ib_projection.py google/flan-t5-base \
@@ -132,9 +140,9 @@ python ib_projection.py google-bert/bert-base-uncased \
   --instruction_scope all
 ```
 
-- Name-Based Populations
+3. Name-Based Populations
 
-Used to probe demographic associations through personal names.
+Probes demographic associations using common names from the US Social Security Administration.
 
 ```
 python ib_projection.py google/flan-t5-base \
@@ -163,61 +171,32 @@ python ib_projection.py google-bert/bert-base-uncased \
 
 ### Outputs
 
-Each run produces:
+Each execution generates two primary artifacts:
 
-*_projection_results.csv
-→ layer-wise and dimension-wise projection scores
+1. *_projection_results.csv: Contains layer-wise and dimension-wise projection scores for detailed statistical analysis.
 
-*_warmth_competence_profile.pdf
-→ 2D summary plot (Warmth vs Competence)
+2. *_warmth_competence_profile.pdf: A 2D scatter plot visualizing the population's position on the Warmth vs. Competence axes.
 
-### Instruction File Format
+## Resources & References
 
-Instructions are defined as a JSON dictionary:
+Data Sources
 
-{
-  "baseline": "",
-  "conservative": "You are conservative.",
-  "liberal": "You are liberal.",
-  "leftist": "You are leftist."
-}
+- CrowS-Pairs Dataset: A challenge [dataset](nyu-mll/crows-pairs) for measuring social biases in language models.
 
-Each instruction is treated as a semantic intervention on the model’s embedding space.
+- Stereotype Dictionaries: Based on the Stereotype Content Model [Seed](https://osf.io/ghfkb) | [Full](https://osf.io/m9nb5).
 
-### Notes on Instruction Scope
+- Vocabulary: Names sourced from the US Social Security Administration and Gendered terms adapted from Caliskan et al. (2017).
 
---instruction_scope all
+### Key References
 
-Recomputes stereotype axes under each instruction
+- Schuster et al. (2024) Profiling bias in llms.
 
-Recommended for interpretability analysis
+- Engler et al. (2022): SensePOLAR framework.
 
-### Resources
+- Nicolas et al. (2021): Comprehensive stereotype content dictionaries.
 
-- Stereotype Dictionaries
+- Fraser et al. (2021). Understanding and Countering Stereotypes. ACL-IJCNLP.
 
-Based on the Stereotype Content Model:
+- Mathew et al. (2020). The Polar Framework.
 
-Seed dictionary: https://osf.io/ghfkb
-
-Full dictionary: https://osf.io/m9nb5
-
-- Vocabulary Sources
-
-Names
-US Social Security Administration, top names over the last 100 years.
-
-Gendered Terms
-Adapted from WEAT-style experiments (Caliskan et al., 2017).
-
-### References
-
-Caliskan et al. (2017). Semantics derived automatically from language corpora contain human-like biases. Science.
-
-Engler et al. (2022). SensePOLAR. EMNLP Findings.
-
-Fraser et al. (2021). Understanding and Countering Stereotypes. ACL-IJCNLP.
-
-Mathew et al. (2020). The Polar Framework.
-
-Nicolas et al. (2021). Comprehensive stereotype content dictionaries. EJSP.
+- Caliskan et al. (2017): Semantics derived automatically from language corpora contain human-like biases.
